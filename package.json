@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@types/d3": "^6.2.0",
+    "d3-sankey": "^0.12.3"
+  }
+}
