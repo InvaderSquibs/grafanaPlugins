@@ -1,38 +1,61 @@
 import React from 'react';
 import { PanelProps } from '@grafana/data';
 import { SimpleOptions } from 'types';
-import { useTheme } from '@grafana/ui';
-import * as d3 from 'd3';
-import sankey from 'd3-sankey'
 
 interface Props extends PanelProps<SimpleOptions> {}
 
 export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
-  const theme = useTheme();
-  const values = [1, 34, 7, 20, 13, 3];
-  const padding = 20;
-  const chartHeight = height - padding;
-  const barHeight = chartHeight / values.length;
+  const series = data?.series;
+  const eventList: any[] = [];
+  let eventName, timeField, timeList, userIdField, userIdList;
 
-  const scale = d3
-    .scaleLinear()
-    .domain([0, d3.max(values) || 0.0])
-    .range([0, width]);
-  const axis = d3.axisBottom(scale);
+  series.forEach(event => {
+    eventName = event?.name;
+    if (!eventName) {
+      return;
+    }
 
+    timeField = event?.fields[0];
+    timeList = timeField?.values?.toArray();
+    userIdField = event?.fields[1];
+    userIdList = userIdField?.values?.toArray();
+
+    for (let i = 0; i < timeList.length; i++) {
+      eventList.push({ eventName, userId: userIdList[i], time: timeList[i] });
+    }
+  });
+
+  eventList.sort((eventA: any, eventB: any) => {
+    return eventA.time - eventB.time;
+  });
+
+  const lastUserEvent: any[] = [];
+  const eventMap: any = {};
+  let mapName;
+  eventList.forEach(event => {
+    if (lastUserEvent[event.userId]) {
+      mapName = `${lastUserEvent[event.userId]},${event.eventName}`;
+      eventMap[mapName] = eventMap[mapName] ? eventMap[mapName] + 1 : 1;
+    }
+
+    lastUserEvent[event.userId] = event.eventName;
+  });
+
+  const flatArr = Object.keys(eventMap).reduce((agg: String[], key) => {
+    agg.push(`${key},${eventMap[key]}`);
+    return agg;
+  }, []);
+
+  console.log({ flatArr });
   return (
     <svg width={width} height={height}>
       <g>
-        {values.map((value, i) => (
-          <rect x={0} y={i * barHeight} width={scale(value)} height={barHeight - 1} fill={theme.palette.greenBase} />
-        ))}
+        <text x="57.452377" y="90.714287" id="text835">
+          <tspan id="tspan833" x="57.452377" y="90.714287">
+            {data}
+          </tspan>
+        </text>
       </g>
-      <g
-        transform={`translate(0, ${chartHeight})`}
-        ref={node => {
-          d3.select(node).call(axis as any);
-        }}
-      />
     </svg>
   );
 };
