@@ -3,21 +3,19 @@ import * as d3 from 'd3';
 import { sankey as d3sankey } from 'd3-sankey';
 import { PanelProps } from '@grafana/data';
 import { SimpleOptions } from 'types';
+import ReactHtmlParser from 'react-html-parser';
 
 interface Props extends PanelProps<SimpleOptions> {}
+interface SVGProps {
+  height: any;
+  width: any;
+  nodes: any;
+  links: any;
+}
 
-export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
-  const series = data?.series;
-  const { nodes, links } = getData(series);
-
-  const margin = { top: 10, right: 10, bottom: 10, left: 10 };
-
-  const svg = d3.select('#sankey-graph').attr('viewBox', [0, 0, width, height].join(' ');
-  //d3.create('svg').attr('viewBox', [0, 0, width, height].join(' '));
-
+const generateSvg: React.FC<SVGProps> = ({ height, width, nodes, links }) => {
   // Color scale used
   const color = d3.scaleOrdinal(d3.schemeCategory10);
-
   // Set the sankey diagram properties
   const sankey = d3sankey()
     .nodeWidth(36)
@@ -27,6 +25,8 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   // Constructs a new Sankey generator with the default settings.
   sankey.nodes(nodes).links(links);
 
+  const svg = d3.create('svg').attr('viewBox', [0, 0, width, height].join(' '));
+
   // add in the links
   svg
     .append('g')
@@ -35,7 +35,6 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
     .enter()
     .append('path')
     .attr('class', 'link')
-    //.attr('d', sankey.link())
     .style('stroke-width', function(d: any) {
       return Math.max(1, d.dy);
     })
@@ -66,10 +65,6 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
       return (d.color = color(d.name.replace(/ .*/, '')) || '');
     })
     .style('stroke', 'rgb(200,200,200)')
-    // function(d: any) {
-    //   return d3.rgb(d.color).darker(2) || '';
-    // })
-    // Add hover text
     .append('title')
     .text(function(d: any) {
       return d.name + '\n' + 'There is ' + d.value + ' stuff in this node';
@@ -94,10 +89,15 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
     .attr('x', 6 + sankey.nodeWidth())
     .attr('text-anchor', 'start');
 
-  //return svg.node();
-  return (
-    <svg id='sankey-graph' />
-  )
+  const htmlString = svg.node()?.outerHTML.trim() || '';
+  return <>{ReactHtmlParser(htmlString)}</>;
+};
+
+export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
+  const series = data?.series;
+  const { nodes, links } = getData(series);
+
+  return <>{generateSvg({ height, width, nodes, links })}</>;
 };
 
 const getData = (series: any) => {
