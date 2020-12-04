@@ -6,47 +6,9 @@ interface Props extends PanelProps<SimpleOptions> {}
 
 export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
   const series = data?.series;
-  const eventList: any[] = [];
-  let eventName, timeField, timeList, userIdField, userIdList;
+  const displayData = getData(series);
 
-  series.forEach(event => {
-    eventName = event?.name;
-    if (!eventName) {
-      return;
-    }
-
-    timeField = event?.fields[0];
-    timeList = timeField?.values?.toArray();
-    userIdField = event?.fields[1];
-    userIdList = userIdField?.values?.toArray();
-
-    for (let i = 0; i < timeList.length; i++) {
-      eventList.push({ eventName, userId: userIdList[i], time: timeList[i] });
-    }
-  });
-
-  eventList.sort((eventA: any, eventB: any) => {
-    return eventA.time - eventB.time;
-  });
-
-  const lastUserEvent: any[] = [];
-  const eventMap: any = {};
-  let mapName;
-  eventList.forEach(event => {
-    if (lastUserEvent[event.userId]) {
-      mapName = `${lastUserEvent[event.userId]},${event.eventName}`;
-      eventMap[mapName] = eventMap[mapName] ? eventMap[mapName] + 1 : 1;
-    }
-
-    lastUserEvent[event.userId] = event.eventName;
-  });
-
-  const flatArr = Object.keys(eventMap).reduce((agg: String[], key) => {
-    agg.push(`${key},${eventMap[key]}`);
-    return agg;
-  }, []);
-
-  console.log({ flatArr });
+  console.log({ displayData });
   return (
     <svg width={width} height={height}>
       <g>
@@ -58,4 +20,49 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
       </g>
     </svg>
   );
+};
+
+const getData = (series: any) => {
+  const eventList: any[] = [];
+  const nodes: any = { start: { id: 'start', name: 'start' } };
+  let eventName, timeField, timeList, userIdField, userIdList;
+
+  series.forEach((event: any) => {
+    eventName = event?.name;
+    if (!eventName) {
+      return;
+    }
+
+    timeField = event?.fields[0];
+    timeList = timeField?.values?.toArray();
+    userIdField = event?.fields[1];
+    userIdList = userIdField?.values?.toArray();
+
+    for (let i = 0; i < timeList.length; i++) {
+      if (!nodes[eventName]) {
+        nodes[eventName] = { id: eventName, name: eventName.substring(7) };
+      }
+      eventList.push({ eventName, userId: userIdList[i], time: timeList[i] });
+    }
+  });
+
+  eventList.sort((eventA: any, eventB: any) => {
+    return eventA.time - eventB.time;
+  });
+
+  const lastUserEvent: any[] = [];
+  const links: any = {};
+  let nodeName, source, target;
+  eventList.forEach(event => {
+    source = lastUserEvent[event.userId] || 'start';
+    target = event.eventName;
+    nodeName = `${source},${target}`;
+    if (!links[nodeName]) {
+      links[nodeName] = { source, target, value: 0 };
+    }
+    links[nodeName].value = links[nodeName].value + 1;
+    lastUserEvent[event.userId] = target;
+  });
+
+  return Object.values({ nodes, links });
 };
