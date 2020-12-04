@@ -1,7 +1,6 @@
 import React from 'react';
 import * as d3 from 'd3';
-import d3sankey from 'd3-sankey';
-import {event as currentEvent} from 'd3';
+import { sankey as d3sankey } from 'd3-sankey';
 import { PanelProps } from '@grafana/data';
 import { SimpleOptions } from 'types';
 
@@ -11,17 +10,13 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   const series = data?.series;
   const { nodes, links } = getData(series);
 
-  const margin = {top: 10, right: 10, bottom: 10, left: 10},
+  const margin = { top: 10, right: 10, bottom: 10, left: 10 };
 
-  const svg = d3.select("#my_dataviz").append("svg")
-    .attr("width", width + margin.left + margin.right)
-    .attr("height", height + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform",
-          "translate(" + margin.left + "," + margin.top + ")");
+  const svg = d3.select('#sankey-graph').attr('viewBox', [0, 0, width, height].join(' ');
+  //d3.create('svg').attr('viewBox', [0, 0, width, height].join(' '));
 
   // Color scale used
-  const color = d3.scaleOrdinal().range(d3.schemeCategory10);
+  const color = d3.scaleOrdinal(d3.schemeCategory10);
 
   // Set the sankey diagram properties
   const sankey = d3sankey()
@@ -30,71 +25,79 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
     .size([width, height]);
 
   // Constructs a new Sankey generator with the default settings.
-  sankey
-      .nodes(nodes)
-      .links(links)
-      .layout(1);
+  sankey.nodes(nodes).links(links);
 
   // add in the links
-  var link = svg.append("g")
-    .selectAll(".link")
+  svg
+    .append('g')
+    .selectAll('.link')
     .data(links)
     .enter()
-    .append("path")
-      .attr("class", "link")
-      .attr("d", sankey.link() )
-      .style("stroke-width", function(d:any) { return Math.max(1, d.dy); })
-      .sort(function(a:any, b:any) { return b.dy - a.dy; });
+    .append('path')
+    .attr('class', 'link')
+    //.attr('d', sankey.link())
+    .style('stroke-width', function(d: any) {
+      return Math.max(1, d.dy);
+    })
+    .sort(function(a: any, b: any) {
+      return b.dy - a.dy;
+    });
 
   // add in the nodes
-  var node = svg.append("g")
-    .selectAll(".node")
+  const node = svg
+    .append('g')
+    .selectAll('.node')
     .data(nodes)
-    .enter().append("g")
-      .attr("class", "node")
-      .attr("transform", function(d:any) { return "translate(" + d.x + "," + d.y + ")"; })
-      .call(d3.drag()
-        .subject(function(d) { return d; })
-        .on("start", function() { this.parentNode.appendChild(this); })
-        .on("drag", dragmove));
+    .enter()
+    .append('g')
+    .attr('class', 'node')
+    .attr('transform', function(d: any) {
+      return 'translate(' + d.x + ',' + d.y + ')';
+    });
 
   // add the rectangles for the nodes
   node
-    .append("rect")
-      .attr("height", function(d: any) { return d.dy; })
-      .attr("width", sankey.nodeWidth())
-      .style("fill", function(d: any) { return color(d.name.replace(/ .*/, "")) || ''; })
-      .style("stroke", function(d: any) { return d3.rgb(d.color).darker(2) || ''; })
+    .append('rect')
+    .attr('height', function(d: any) {
+      return d.dy;
+    })
+    .attr('width', sankey.nodeWidth())
+    .style('fill', function(d: any) {
+      return (d.color = color(d.name.replace(/ .*/, '')) || '');
+    })
+    .style('stroke', 'rgb(200,200,200)')
+    // function(d: any) {
+    //   return d3.rgb(d.color).darker(2) || '';
+    // })
     // Add hover text
-    .append("title")
-      .text(function(d:any) { return d.name + "\n" + "There is " + d.value + " stuff in this node"; });
+    .append('title')
+    .text(function(d: any) {
+      return d.name + '\n' + 'There is ' + d.value + ' stuff in this node';
+    });
 
   // add in the title for the nodes
-    node
-      .append("text")
-        .attr("x", -6)
-        .attr("y", function(d: any) { return d.dy / 2; })
-        .attr("dy", ".35em")
-        .attr("text-anchor", "end")
-        .attr("transform", null)
-        .text(function(d: any) { return d.name; })
-      .filter(function(d: any) { return d.x < width / 2; })
-        .attr("x", 6 + sankey.nodeWidth())
-        .attr("text-anchor", "start");
+  node
+    .append('text')
+    .attr('x', -6)
+    .attr('y', function(d: any) {
+      return d.dy / 2;
+    })
+    .attr('dy', '.35em')
+    .attr('text-anchor', 'end')
+    .attr('transform', null)
+    .text(function(d: any) {
+      return d.name;
+    })
+    .filter(function(d: any) {
+      return d.x < width / 2;
+    })
+    .attr('x', 6 + sankey.nodeWidth())
+    .attr('text-anchor', 'start');
 
-  // the function for moving the nodes
-  function dragmove(d: any) {
-    d3.select(this)
-      .attr("transform",
-            "translate("
-               + d.x + ","
-               + (d.y = Math.max(
-                  0, Math.min(height - d.dy, currentEvent.y))
-                 ) + ")");
-    sankey.relayout();
-    link.attr("d", sankey.link() );
-  }
-
+  //return svg.node();
+  return (
+    <svg id='sankey-graph' />
+  )
 };
 
 const getData = (series: any) => {
