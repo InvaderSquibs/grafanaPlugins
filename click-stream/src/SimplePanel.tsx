@@ -96,12 +96,14 @@ const generateSvg: React.FC<SVGProps> = ({ height, width, nodes, links }) => {
 export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
   const series = data?.series;
   const { nodes, links } = getData(series);
+  console.log({ nodes, links });
 
   return <>{generateSvg({ height, width, nodes, links })}</>;
 };
 
 const getData = (series: any) => {
   const eventList: any[] = [];
+  const userVisited: any = {};
   const nodes: any = { start: { id: 'start', name: 'start' } };
   let eventName, timeField, timeList, userIdField, userIdList;
 
@@ -117,10 +119,23 @@ const getData = (series: any) => {
     userIdList = userIdField?.values?.toArray();
 
     for (let i = 0; i < timeList.length; i++) {
-      if (!nodes[eventName]) {
-        nodes[eventName] = { id: eventName, name: eventName.substring(7) };
+      const userId = userIdList[i];
+      const userVisitedCount = userVisited[`${userId}${eventName}`] || 0;
+      let currentEventName = eventName;
+
+      if (userVisitedCount > 0) {
+        currentEventName += ` ${userVisitedCount}`;
       }
-      eventList.push({ eventName, userId: userIdList[i], time: timeList[i] });
+
+      if (!nodes[currentEventName]) {
+        if (userVisitedCount > 10) {
+          console.log({ userId, visited: userVisited[`${userId}${eventName}`], eventName });
+        }
+        nodes[currentEventName] = { id: currentEventName, name: currentEventName };
+      }
+
+      userVisited[`${userId}${eventName}`] = userVisitedCount + 1;
+      eventList.push({ currentEventName, userId, time: timeList[i] });
     }
   });
 
