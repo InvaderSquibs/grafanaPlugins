@@ -19,7 +19,9 @@
     "@grafana/data": "^7.0.0",
     "@grafana/toolkit": "^7.0.0",
     "@grafana/ui": "^7.0.0",
+    "@types/chroma-js": "^2.1.2",
     "@types/d3-sankey": "^0.11.1",
+    "chroma-js": "^2.1.0",
     "emotion": "10.0.27"
   },
   "engines": {
