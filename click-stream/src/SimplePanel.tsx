@@ -14,7 +14,14 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   }
 
   const tempData = {
-    nodes: [{ name: 'a' }, { name: 'b' }, { name: 'c' }, { name: 'd' }, { name: 'e' }, { name: 'f' }],
+    nodes: [
+      { name: 'arrange' },
+      { name: 'beta' },
+      { name: 'caratine' },
+      { name: 'down' },
+      { name: 'every' },
+      { name: 'file' },
+    ],
     links: [
       { source: 0, target: 1, value: 8 },
       { source: 0, target: 2, value: 15 },

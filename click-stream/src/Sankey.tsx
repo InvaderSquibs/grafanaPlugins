@@ -25,7 +25,7 @@ const Sankey: React.FC<Props> = ({ data, width, height }) => {
   // }, []);
 
   const { nodes, links } = sankey()
-    .nodeWidth(15)
+    .nodeWidth(20)
     .nodePadding(10)
     .extent([
       [1, 1],
@@ -40,30 +40,47 @@ const Sankey: React.FC<Props> = ({ data, width, height }) => {
 
   return (
     <g>
-      {nodes.map((node, i) => (
-        <SankeyNode {...node} name="testing" color={color(colorScale(i)).hex()} key={i} />
-      ))}
       {links.map((link, i) => (
         <SankeyLink link={link} color={color(colorScale(i)).hex()} />
+      ))}
+      {nodes.map((node, i) => (
+        <SankeyNode node={node} width={width} color={color(colorScale(i)).hex()} key={i} />
       ))}
     </g>
   );
 };
 
 interface NodeProps {
-  name: string;
-  x0?: number;
-  x1?: number;
-  y0?: number;
-  y1?: number;
+  node: any;
+  width: number;
   color: any;
 }
 
-const SankeyNode: React.FC<NodeProps> = ({ name, x0 = 0, x1 = 0, y0 = 0, y1 = 0, color }) => (
-  <rect x={x0} y={y0} width={x1 - x0} height={y1 - y0} fill={color}>
-    <title>{name}</title>
-  </rect>
-);
+const SankeyNode: React.FC<NodeProps> = ({ node, width, color }) => {
+  const { name, x0 = 0, x1 = 0, y0 = 0, y1 = 0 } = node;
+  const titleXShift = x0 < width / 2 ? x1 + 8 : x0 - 8;
+  const titleYShift = y0 + (y1 - y0 + 9) / 2;
+  const anchorPos = x0 < width / 2 ? 'start' : 'end';
+
+  console.log({ color });
+
+  return (
+    <>
+      <rect x={x0} y={y0} width={x1 - x0} height={y1 - y0} fill={color} stroke="black">
+        <title>{name}</title>
+      </rect>
+      <text
+        fill="#cccccc"
+        x={titleXShift}
+        y={titleYShift}
+        textAnchor={anchorPos}
+        style={{ font: 'bold 18px sans-serif' }}
+      >
+        {name}
+      </text>
+    </>
+  );
+};
 
 interface LinkProps {
   link: any;
