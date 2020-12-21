@@ -9,9 +9,8 @@ export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) =
   const series = data?.series;
   const svgData = getData(series.splice(0, 1));
   const svgRef = useRef<SVGSVGElement>(null);
-  if (!svgData) {
-    console.log(svgData);
-  }
+
+  console.log(svgData);
 
   const tempData = {
     nodes: [
