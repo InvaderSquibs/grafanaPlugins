@@ -5,75 +5,90 @@ import Sankey from './Sankey';
 
 interface Props extends PanelProps<SimpleOptions> {}
 
-export const SimplePanel: React.FC<Props> = ({ options, data, width, height }) => {
+export const ClickStream: React.FC<Props> = ({ options, data, width, height, replaceVariables }) => {
+  const flow = JSON.parse(replaceVariables('$flow'));
+  console.log({ flow });
+
   const series = data?.series;
-  const svgData = getData(series.splice(0, 1));
+  const svgData = getData({ series, startNode: 'landing_click_play', flow });
   const svgRef = useRef<SVGSVGElement>(null);
 
-  console.log(svgData);
-
-  const tempData = {
-    nodes: [
-      { name: 'arrange' },
-      { name: 'beta' },
-      { name: 'caratine' },
-      { name: 'down' },
-      { name: 'every' },
-      { name: 'file' },
-    ],
-    links: [
-      { source: 0, target: 1, value: 8 },
-      { source: 0, target: 2, value: 15 },
-      { source: 0, target: 3, value: 6 },
-      { source: 0, target: 4, value: 5 },
-      { source: 0, target: 5, value: 20 },
-      { source: 1, target: 2, value: 2 },
-      { source: 1, target: 5, value: 4 },
-      { source: 2, target: 4, value: 4 },
-      { source: 2, target: 3, value: 7 },
-      { source: 2, target: 5, value: 2 },
-      { source: 3, target: 5, value: 1 },
-    ],
-  };
   return (
     <svg width="100%" height="600" ref={svgRef}>
-      {svgData && <Sankey data={tempData} width={width} height={height} />}
+      {svgData && <Sankey data={svgData} width={width} height={height} />}
     </svg>
   );
 };
 
-const getData = (series: any) => {
-  const eventList: any[] = [];
-  const userVisited: any = {};
-  const nodes: any = { start: { name: 'start' } };
-  let eventName, timeField, timeList, userIdField, userIdList;
+const getData = ({ series, startNode, flow }: any) => {
+  const { eventList, nodes } = sortEvents(series);
+  const userVisitedNode: any = new Set();
+  const lastUserEvent: any = {};
+  const links: any = {};
+
+  const startIndex = eventList.findIndex((event: any) => {
+    return event.eventName === startNode;
+  });
+  eventList.splice(0, startIndex);
+
+  eventList.forEach((event: any) => {
+    const { eventName, userId } = event;
+    const visitKey = `${userId}${eventName}`;
+
+    if (!lastUserEvent[userId] && eventName === startNode) {
+      lastUserEvent[userId] = eventName;
+      userVisitedNode.add(visitKey);
+      return;
+    }
+
+    if (userVisitedNode.has(visitKey) || !lastUserEvent[userId]) {
+      return;
+    }
+
+    if (flow.indexOf(eventName) < flow.indexOf(lastUserEvent[userId])) {
+      return;
+    }
+
+    const source = nodes[lastUserEvent[userId]].index;
+    const target = nodes[eventName].index;
+    const nodeName = `${source},${target}`;
+
+    if (!links[nodeName]) {
+      links[nodeName] = { source, target, value: 0 };
+    }
+
+    links[nodeName].value = links[nodeName].value + 1;
+    lastUserEvent[userId] = eventName;
+    userVisitedNode.add(visitKey);
+  });
+
+  return { nodes: Object.values(nodes), links: Object.values(links) };
+};
+
+const sortEvents = (series: any): { nodes: any; eventList: any } => {
+  const nodes: any = {};
+  let nodeIndex = 0;
+  const eventList: any = [];
 
   series.forEach((event: any) => {
-    eventName = event?.name;
+    const eventName = event?.name;
     if (!eventName) {
       return;
     }
 
-    timeField = event?.fields[0];
-    timeList = timeField?.values?.toArray();
-    userIdField = event?.fields[1];
-    userIdList = userIdField?.values?.toArray();
+    const timeField = event?.fields[0];
+    const timeList = timeField?.values?.toArray();
+    const userIdField = event?.fields[1];
+    const userIdList = userIdField?.values?.toArray();
 
     for (let i = 0; i < timeList.length; i++) {
       const userId = userIdList[i];
-      const userVisitedCount = userVisited[`${userId}${eventName}`] || 0;
-      let currentEventName = eventName;
-
-      if (userVisitedCount > 0) {
-        currentEventName += ` ${userVisitedCount}`;
+      if (!nodes[eventName]) {
+        nodes[eventName] = { name: eventName, index: nodeIndex };
+        nodeIndex++;
       }
 
-      if (!nodes[currentEventName]) {
-        nodes[currentEventName] = { name: currentEventName };
-      }
-
-      userVisited[`${userId}${eventName}`] = userVisitedCount + 1;
-      eventList.push({ currentEventName, userId, time: timeList[i] });
+      eventList.push({ eventName, userId, time: timeList[i] });
     }
   });
 
@@ -81,19 +96,5 @@ const getData = (series: any) => {
     return eventA.time - eventB.time;
   });
 
-  const lastUserEvent: any[] = [];
-  const links: any = {};
-  let nodeName, source, target;
-  eventList.forEach(event => {
-    source = lastUserEvent[event.userId] || 'start';
-    target = event.currentEventName;
-    nodeName = `${source},${target}`;
-    if (!links[nodeName]) {
-      links[nodeName] = { source, target, value: 0 };
-    }
-    links[nodeName].value = links[nodeName].value + 1;
-    lastUserEvent[event.userId] = target;
-  });
-
-  return { nodes: Object.values(nodes), links: Object.values(links) };
+  return { eventList, nodes };
 };

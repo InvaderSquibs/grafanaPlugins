@@ -48,7 +48,7 @@ interface NodeProps {
 }
 
 const SankeyNode: React.FC<NodeProps> = ({ node, height, width, color }) => {
-  const { name, x0 = 0, x1 = 0, y0 = 0, y1 = 0 } = node;
+  const { name, x0 = 0, x1 = 0, y0 = 0, y1 = 0, value } = node;
   const titleXShift = x0 < width / 2 ? x1 + 8 : x0 - 8;
   const titleYShift = y0 + (y1 - y0 + 9) / 2;
   const anchorPos = x0 < width / 2 ? 'start' : 'end';
@@ -56,14 +56,14 @@ const SankeyNode: React.FC<NodeProps> = ({ node, height, width, color }) => {
   return (
     <g id={name} onDrag={dragNode}>
       <rect x={x0} y={y0} dy=".35em" width={x1 - x0} height={y1 - y0} fill={color} stroke="black">
-        <title>{name}</title>
+        <title>{value}</title>
       </rect>
       <text
         fill="#cccccc"
         x={titleXShift}
         y={titleYShift}
         textAnchor={anchorPos}
-        style={{ font: 'bold 18px sans-serif' }}
+        style={{ font: 'bold 14px sans-serif' }}
       >
         {name}
       </text>
