@@ -36,10 +36,6 @@ const Sankey: React.FC<Props> = ({ data, width, height }) => {
   );
 };
 
-const dragNode = (event: any) => {
-  console.log({ event });
-};
-
 interface NodeProps {
   node: any;
   height: number;
@@ -54,9 +50,9 @@ const SankeyNode: React.FC<NodeProps> = ({ node, height, width, color }) => {
   const anchorPos = x0 < width / 2 ? 'start' : 'end';
 
   return (
-    <g id={name} onDrag={dragNode}>
-      <rect x={x0} y={y0} dy=".35em" width={x1 - x0} height={y1 - y0} fill={color} stroke="black">
-        <title>{value}</title>
+    <g id={name}>
+      <rect x={x0} y={y0} dy=".35em" width={x1 - x0} height={y1 - y0} fill={color} stroke="black" onDrag={dragNode}>
+        <title>{`${name}: ${value}`}</title>
       </rect>
       <text
         fill="#cccccc"
