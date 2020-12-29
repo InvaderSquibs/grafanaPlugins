@@ -7,8 +7,6 @@ interface Props extends PanelProps<SimpleOptions> {}
 
 export const ClickStream: React.FC<Props> = ({ options, data, width, height, replaceVariables }) => {
   const flow = JSON.parse(replaceVariables('$flow'));
-  console.log({ flow });
-
   const series = data?.series;
   const svgData = getData({ series, startNode: 'landing_click_play', flow });
   const svgRef = useRef<SVGSVGElement>(null);
