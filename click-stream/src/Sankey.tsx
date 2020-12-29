@@ -51,7 +51,7 @@ const SankeyNode: React.FC<NodeProps> = ({ node, height, width, color }) => {
 
   return (
     <g id={name}>
-      <rect x={x0} y={y0} dy=".35em" width={x1 - x0} height={y1 - y0} fill={color} stroke="black" onDrag={dragNode}>
+      <rect x={x0} y={y0} dy=".35em" width={x1 - x0} height={y1 - y0} fill={color} stroke="black">
         <title>{`${name}: ${value}`}</title>
       </rect>
       <text
