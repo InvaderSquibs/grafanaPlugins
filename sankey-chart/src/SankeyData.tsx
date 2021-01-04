@@ -77,4 +77,4 @@ const sortEvents = (series: any): { nodes: any; eventList: any } => {
   return { eventList, nodes };
 };
 
-export { parseData }
+export { parseData };
