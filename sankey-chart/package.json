@@ -1,0 +1,32 @@
+{
+  "name": "squibs-sankey-chart",
+  "version": "1.0.0",
+  "description": "Sankey chart for timescale bucket events",
+  "scripts": {
+    "build": "grafana-toolkit plugin:build",
+    "test": "grafana-toolkit plugin:test",
+    "dev": "grafana-toolkit plugin:dev",
+    "watch": "grafana-toolkit plugin:dev --watch"
+  },
+  "repository": "github:grafana/simple-react-panel",
+  "author": "Squibs",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/grafana/simple-react-panel/issues",
+    "email": "plugins@grafana.com"
+  },
+  "devDependencies": {
+    "@grafana/data": "^7.0.0",
+    "@grafana/toolkit": "^7.0.0",
+    "@grafana/ui": "^7.0.0",
+    "@types/chroma-js": "^2.1.3",
+    "@types/d3": "^6.2.0",
+    "@types/d3-sankey": "^0.11.1",
+    "chroma-js": "^2.1.0",
+    "d3-sankey": "^0.12.3",
+    "emotion": "10.0.27"
+  },
+  "engines": {
+    "node": ">=12 <13"
+  }
+}
