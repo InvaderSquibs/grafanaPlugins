@@ -1,5 +1,5 @@
-const parseData = ({ series, startNode, flow }: any) => {
-  const { eventList, nodes } = sortEvents(series);
+const parseData = ({ series, startNode, flow, labels }: any) => {
+  const { eventList, nodes } = sortEvents({ series, labels });
   const userVisitedNode: any = new Set();
   const lastUserEvent: any = {};
   const links: any = {};
@@ -43,7 +43,7 @@ const parseData = ({ series, startNode, flow }: any) => {
   return { nodes: Object.values(nodes), links: Object.values(links) };
 };
 
-const sortEvents = (series: any): { nodes: any; eventList: any } => {
+const sortEvents = ({ series, labels }: any) => {
   const nodes: any = {};
   let nodeIndex = 0;
   const eventList: any = [];
@@ -62,7 +62,7 @@ const sortEvents = (series: any): { nodes: any; eventList: any } => {
     for (let i = 0; i < timeList.length; i++) {
       const userId = userIdList[i];
       if (!nodes[eventName]) {
-        nodes[eventName] = { name: eventName, index: nodeIndex };
+        nodes[eventName] = { name: eventName, label: labels[eventName], index: nodeIndex };
         nodeIndex++;
       }
 

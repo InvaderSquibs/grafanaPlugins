@@ -18,7 +18,7 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
       [width - 1, height - 5],
     ])(data);
 
-  const color = chroma.scale('Set3').classes(nodes.length);
+  const color = chroma.scale('Spectral').classes(nodes.length);
   const colorScale = d3
     .scaleLinear()
     .domain([0, nodes.length])
@@ -44,7 +44,7 @@ interface NodeProps {
 }
 
 const SankeyNode: React.FC<NodeProps> = ({ node, height, width, color }) => {
-  const { name, x0 = 0, x1 = 0, y0 = 0, y1 = 0, value } = node;
+  const { name, label, value, x0 = 0, x1 = 0, y0 = 0, y1 = 0 } = node;
   const titleXShift = x0 < width / 2 ? x1 + 8 : x0 - 8;
   const titleYShift = y0 + (y1 - y0 + 9) / 2;
   const anchorPos = x0 < width / 2 ? 'start' : 'end';
@@ -55,13 +55,13 @@ const SankeyNode: React.FC<NodeProps> = ({ node, height, width, color }) => {
         <title>{`${name}: ${value}`}</title>
       </rect>
       <text
-        fill="#cccccc"
+        fill="#DDDDDD"
         x={titleXShift}
         y={titleYShift}
         textAnchor={anchorPos}
         style={{ font: 'bold 14px sans-serif' }}
       >
-        {name}
+        {label}: {value}
       </text>
     </g>
   );
