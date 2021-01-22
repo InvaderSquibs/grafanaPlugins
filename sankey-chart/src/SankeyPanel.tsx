@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { PanelProps } from '@grafana/data';
 import { SimpleOptions } from 'types';
 import SankeyChart from './SankeyChart';
@@ -15,11 +15,20 @@ export const SankeyPanel: React.FC<Props> = ({ options, data, width, height, rep
   });
 
   const series = data?.series;
+
+  if (series.length < 1) {
+    return (
+      <svg width="100%" height="600">
+        <text fill="#DDDDDD" x={width / 2 - 112} y={height / 2 - 24} style={{ font: 'bold 24px sans-serif' }}>
+          No data to display.
+        </text>
+      </svg>
+    );
+  }
   const svgData = SankeyData.parseData({ series, startNode: 'landing_click_play', flow, labels });
-  const svgRef = useRef<SVGSVGElement>(null);
 
   return (
-    <svg width="100%" height="600" ref={svgRef}>
+    <svg width="100%" height="600">
       {svgData && <SankeyChart data={svgData} width={width} height={height} />}
     </svg>
   );

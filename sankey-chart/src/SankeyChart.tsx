@@ -28,6 +28,11 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
 
   return (
     <g>
+      <defs>
+        <filter x="0" y="0" width="1" height="1" id="text-background">
+          <feFlood floodColor="#000000BB" />
+        </filter>
+      </defs>
       {links.map((link, i) => (
         <SankeyLink link={link} setHoverText={setHoverText} width={width} color={color(colorScale(i)).hex()} />
       ))}
@@ -35,15 +40,7 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
         <SankeyNode node={node} height={height} width={width} color={color(colorScale(i)).hex()} key={i} />
       ))}
       {hoverText.x > -1 && hoverText.y > -1 && (
-        <text
-          fill="#DDDDDD"
-          x={hoverText.x}
-          y={hoverText.y}
-          textAnchor={hoverText.anchorPos}
-          style={{ font: 'bold 14px sans-serif' }}
-        >
-          {hoverText.text}
-        </text>
+        <TextBox text={hoverText.text} x={hoverText.x} y={hoverText.y} anchorPos={hoverText.anchorPos} />
       )}
     </g>
   );
@@ -61,21 +58,14 @@ const SankeyNode: React.FC<NodeProps> = ({ node, width, color }) => {
   const titleXShift = x0 < width * 0.75 ? x1 + 8 : x0 - 8;
   const titleYShift = y0 + (y1 - y0 + 9) / 2;
   const anchorPos = x0 < width * 0.75 ? 'start' : 'end';
+  const text = `${label}: ${value}`;
 
   return (
     <g id={name}>
       <rect x={x0} y={y0} dy=".35em" width={x1 - x0} height={y1 - y0} fill={color} stroke="black">
-        <title>{`${name}: ${value}`}</title>
+        <title>{text}</title>
       </rect>
-      <text
-        fill="#DDDDDD"
-        x={titleXShift}
-        y={titleYShift}
-        textAnchor={anchorPos}
-        style={{ font: 'bold 14px sans-serif' }}
-      >
-        {label}: {value}
-      </text>
+      <TextBox text={text} x={titleXShift} y={titleYShift} anchorPos={anchorPos} />
     </g>
   );
 };
@@ -92,13 +82,14 @@ const SankeyLink: React.FC<LinkProps> = ({ link, setHoverText, color, width }) =
   const labelXShift = source.x0 < width * 0.75 ? source.x1 + 8 : source.x0 - 8;
   const labelYShift = source.y0 + (source.y1 - source.y0 + 9) / 2 + 24;
   const anchorPos = source.x0 < width * 0.75 ? 'start' : 'end';
+  const percent = ((value / source.value) * 100).toFixed(2);
 
   return (
     <path
       d={sankeyLinkHorizontal()(link) || ''}
       onMouseEnter={e =>
         setHoverText({
-          text: `${value} from ${source.label} to ${target.label}`,
+          text: `${percent} (${value}%) to ${target.label}`,
           achorPos: anchorPos,
           x: labelXShift,
           y: labelYShift,
@@ -112,6 +103,28 @@ const SankeyLink: React.FC<LinkProps> = ({ link, setHoverText, color, width }) =
         strokeWidth: Math.max(1, link.width),
       }}
     />
+  );
+};
+
+interface TextBoxProps {
+  text: string;
+  x: number;
+  y: number;
+  anchorPos: string;
+}
+
+const TextBox: React.FC<TextBoxProps> = ({ text, x, y, anchorPos }) => {
+  const spacedText = `${text}____`;
+  const xShift = anchorPos === 'start' ? x - 8 : x + 8;
+  return (
+    <>
+      <text filter="url(#text-background)" x={xShift} y={y} textAnchor={anchorPos}>
+        {spacedText}
+      </text>
+      <text fill="#DDDDDD" x={x} y={y} textAnchor={anchorPos} style={{ font: 'bold 14px sans-serif' }}>
+        {text}
+      </text>
+    </>
   );
 };
 
