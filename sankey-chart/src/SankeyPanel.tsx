@@ -25,7 +25,7 @@ export const SankeyPanel: React.FC<Props> = ({ options, data, width, height, rep
       </svg>
     );
   }
-  const svgData = SankeyData.parseData({ series, startNode: 'landing_click_play', flow, labels });
+  const svgData = SankeyData.parseData({ series, startNode: flow[0], flow, labels });
 
   return (
     <svg width="100%" height="600">

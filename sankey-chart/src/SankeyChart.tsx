@@ -79,7 +79,7 @@ interface LinkProps {
 
 const SankeyLink: React.FC<LinkProps> = ({ link, setHoverText, color, width }) => {
   const { source, target, value } = link;
-  const labelXShift = source.x0 < width * 0.75 ? source.x1 + 8 : source.x0 - 8;
+  const labelXShift = source.x0 < width * 0.75 ? source.x1 + 10 : source.x0 - 10;
   const labelYShift = source.y0 + (source.y1 - source.y0 + 9) / 2 + 24;
   const anchorPos = source.x0 < width * 0.75 ? 'start' : 'end';
   const percent = ((value / source.value) * 100).toFixed(2);
@@ -89,7 +89,7 @@ const SankeyLink: React.FC<LinkProps> = ({ link, setHoverText, color, width }) =
       d={sankeyLinkHorizontal()(link) || ''}
       onMouseEnter={e =>
         setHoverText({
-          text: `${percent} (${value}%) to ${target.label}`,
+          text: `${percent}% (${value}) to ${target.label}`,
           achorPos: anchorPos,
           x: labelXShift,
           y: labelYShift,
