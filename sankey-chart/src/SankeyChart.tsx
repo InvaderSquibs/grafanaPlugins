@@ -32,7 +32,7 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
     const node = renderNodes.find((node: any) => x > node.x0 && x < node.x1 && y > node.y0 && y < node.y1);
 
     if (node) {
-      setDraggingNode(node);
+      setDraggingNode({ ...node, yStart: y });
     }
   };
 
@@ -45,12 +45,12 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
     const bBox = chartRect?.getBoundingClientRect() || { left: 0, top: 0 };
     const xPos = e?.clientX - bBox?.left;
     const yPos = e?.clientY - bBox?.top;
-    const yDiff = draggingNode.y1 - draggingNode.y0;
+    const yMoved = draggingNode.yStart - yPos;
 
-    draggingNode.x0 = xPos;
-    draggingNode.x1 = xPos + 20;
-    draggingNode.y0 = yPos;
-    draggingNode.y1 = yPos + yDiff;
+    draggingNode.x0 = xPos - 10;
+    draggingNode.x1 = xPos + 10;
+    draggingNode.y0 = draggingNode.y0 - yMoved;
+    draggingNode.y1 = draggingNode.y1 - yMoved;
 
     const newNodes = renderNodes.map((node: any) => (draggingNode.name === node.name ? draggingNode : node));
     const newLinks = renderLinks.map((link: any) => {
@@ -63,8 +63,8 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
 
       const source = sourceChanged ? draggingNode : link.source;
       const target = targetChanged ? draggingNode : link.target;
-      const y0 = sourceChanged ? yPos + yDiff / 2 : link.y0;
-      const y1 = targetChanged ? yPos + yDiff / 2 : link.y1;
+      const y0 = sourceChanged ? link.y0 - yMoved : link.y0;
+      const y1 = targetChanged ? link.y1 - yMoved : link.y1;
 
       console.log({ nodeY0: draggingNode.y0, y0, nodeY1: draggingNode.y1, y1 });
       return { ...link, source, target, y0, y1 };
