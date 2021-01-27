@@ -30,9 +30,6 @@
     "node": ">=12 <13"
   },
   "dependencies": {
-    "@grafana/toolkit": "^7.3.6",
-    "awesome-debounce-promise": "^2.1.0",
-    "react-async-hook": "^3.6.2",
-    "use-constant": "^1.1.0"
+    "@grafana/toolkit": "^7.3.6"
   }
 }

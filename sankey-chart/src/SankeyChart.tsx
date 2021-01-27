@@ -3,9 +3,6 @@ import { sankey, sankeyLinkHorizontal } from 'd3-sankey';
 import * as d3 from 'd3';
 import chroma from 'chroma-js';
 
-// import { useDragDebounce } from './useDragDebounce';
-// import { pointer } from 'd3';
-
 interface Props {
   data: any;
   width: number;
@@ -13,7 +10,7 @@ interface Props {
 }
 
 const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
-  const [hoverText, setHoverText] = useState({ text: '', x: -1, y: -1, anchorPos: '' });
+  const [hoverNode, setHoverNode] = useState<any>(null);
   const [draggingNode, setDraggingNode] = useState<any>(null);
   const [renderNodes, setRenderNodes] = useState<any>(null);
   const [renderLinks, setRenderLinks] = useState<any>(null);
@@ -92,7 +89,7 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
     <g id="sankey-chart" onPointerDown={e => pointerStartMove(e)}>
       <defs>
         <filter x="0" y="0" width="1" height="1" id="text-background">
-          <feFlood floodColor="#000000BB" />
+          <feFlood floodColor="#000000AA" />
         </filter>
       </defs>
       <rect fill="none" width={width} height={height} pointerEvents="visible" onPointerUp={e => pointerStopMove(e)} />
@@ -100,7 +97,7 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
         renderLinks.map((link: any, i: number) => (
           <SankeyLink
             link={link}
-            setHoverText={setHoverText}
+            setHoverNode={setHoverNode}
             width={width}
             color={color(colorScale(i)).hex()}
             endDrag={e => pointerStopMove(e)}
@@ -110,10 +107,8 @@ const SankeyChart: React.FC<Props> = ({ data, width, height }) => {
         renderNodes.map((node: any, i: number) => (
           <SankeyNode node={node} height={height} width={width} color={color(colorScale(i)).hex()} key={i} />
         ))}
-      {renderNodes?.length > 0 && renderNodes.map((node: any, i: number) => <LabelText node={node} width={width} />)}
-      {hoverText.x > -1 && hoverText.y > -1 && (
-        <TextBox text={hoverText.text} x={hoverText.x} y={hoverText.y} anchorPos={hoverText.anchorPos} />
-      )}
+      {renderNodes?.length > 0 &&
+        renderNodes.map((node: any, i: number) => <LabelText node={node} width={width} hoverNode={hoverNode} />)}
     </g>
   );
 };
@@ -144,31 +139,26 @@ const SankeyNode: React.FC<NodeProps> = ({ node, width, color }) => {
 
 interface LinkProps {
   link: any;
-  setHoverText(props: any): void;
+  setHoverNode(props: any): void;
   color: any;
   width: number;
   endDrag(e: React.PointerEvent): void;
 }
 
-const SankeyLink: React.FC<LinkProps> = ({ link, setHoverText, color, width, endDrag }) => {
+const SankeyLink: React.FC<LinkProps> = ({ link, setHoverNode, color, width, endDrag }) => {
   const { source, target, value } = link;
-  const labelXShift = source.x0 < width * 0.75 ? source.x1 + 10 : source.x0 - 10;
-  const labelYShift = source.y0 + (source.y1 - source.y0 + 9) / 2 + 24;
-  const anchorPos = source.x0 < width * 0.75 ? 'start' : 'end';
   const percent = ((value / source.value) * 100).toFixed(2);
 
   return (
     <path
       d={sankeyLinkHorizontal()(link) || ''}
-      onMouseEnter={e =>
-        setHoverText({
-          text: `${percent}% (${value}) to ${target.label}`,
-          achorPos: anchorPos,
-          x: labelXShift,
-          y: labelYShift,
+      onMouseEnter={() =>
+        setHoverNode({
+          name: source.name,
+          hoverText: `${percent}% (${value}) to ${target.label}`,
         })
       }
-      onMouseLeave={() => setHoverText({ text: '', anchorPos: '', x: -1, y: -1 })}
+      onMouseLeave={() => setHoverNode(null)}
       onPointerUp={e => endDrag(e)}
       style={{
         fill: 'none',
@@ -182,10 +172,11 @@ const SankeyLink: React.FC<LinkProps> = ({ link, setHoverText, color, width, end
 
 interface LabelTextProps {
   node: any;
+  hoverNode: any;
   width: number;
 }
 
-const LabelText: React.FC<LabelTextProps> = ({ node, width }) => {
+const LabelText: React.FC<LabelTextProps> = ({ node, hoverNode, width }) => {
   const { label, value, x0 = 0, x1 = 0, y0 = 0, y1 = 0 } = node;
   if (value < 1) {
     return null;
@@ -196,7 +187,14 @@ const LabelText: React.FC<LabelTextProps> = ({ node, width }) => {
   const anchorPos = x0 < width * 0.75 ? 'start' : 'end';
   const text = `${label}: ${value}`;
 
-  return <TextBox text={text} x={titleXShift} y={titleYShift} anchorPos={anchorPos} />;
+  return (
+    <>
+      <TextBox text={text} x={titleXShift} y={titleYShift} anchorPos={anchorPos} />
+      {hoverNode && hoverNode.name === node.name && (
+        <TextBox text={hoverNode.hoverText} x={titleXShift} y={titleYShift + 24} anchorPos={anchorPos} />
+      )}
+    </>
+  );
 };
 
 interface TextBoxProps {
